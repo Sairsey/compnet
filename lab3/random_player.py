@@ -21,8 +21,8 @@ class RandomPlayer:
 
     def decide(self, intermediate_points):
         # in 20% we do nothing
-        if random.random() < 0.20:
-            return None
+        #if random.random() < 0.20:
+        #    return None
 
         possible_moves = []
         # get list of possible targets

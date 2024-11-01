@@ -24,7 +24,7 @@ class Game:
     ADDITIONAL_POINTS = 50
 
     PLAYERS = [
-        ControlledPlayer(1),
+        RandomPlayer(1),
         RandomPlayer(2),
         AggresivePlayer(3),
         GreedyPlayer(4),
@@ -33,7 +33,7 @@ class Game:
     takenPoints = []
     def generatePosition(self):
         isGood = False
-        point = ()
+        point = (self.SAFE_LEFT, self.SAFE_TOP)
         while not isGood:
             point = random.randrange(self.SAFE_LEFT, self.SAFE_RIGHT), random.randrange(self.SAFE_TOP, self.SAFE_BOTTOM)
             isGood = True
@@ -164,6 +164,12 @@ class Game:
                 4,
                 True))
 
+        step = int((self.MIN_RADIUS + self.MAX_RADIUS) / 2)
+        for y in range(self.SAFE_TOP, self.SAFE_BOTTOM, step):
+            for x in range(self.SAFE_LEFT, self.SAFE_RIGHT, step):
+                if x != self.SAFE_LEFT or y != self.SAFE_TOP:
+                    self.intermediate_points.append(IntermediatePoint(self.setPosition((x, y)), (self.MIN_RADIUS + self.MAX_RADIUS) / 4 * 3))
+        '''
         # add points, until we connect source and dest
         while len(self.connectPoints(0)) == 0:
             self.intermediate_points.append(
@@ -184,7 +190,7 @@ class Game:
         # generate additional points
         for i in range(self.ADDITIONAL_POINTS):
             self.intermediate_points.append(IntermediatePoint(self.generatePosition(), random.randrange(self.MIN_RADIUS, self.MAX_RADIUS)))
-
+        '''
         self.whoWon = None
 
     def update(self):

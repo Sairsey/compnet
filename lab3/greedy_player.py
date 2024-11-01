@@ -27,9 +27,14 @@ class GreedyPlayer:
                 neighbors = intermediate_points[i].getNeighborsIndices(intermediate_points)
                 for neighbor in neighbors:
                     if intermediate_points[neighbor].team != self.team:
-                        possible_moves.append((i, neighbor))
+                        score = intermediate_points[i].health - intermediate_points[neighbor].health
 
-        return possible_moves[0]
+                        possible_moves.append(((i, neighbor), score))
+
+        possible_moves.sort(key=lambda x: -x[1])
+        if possible_moves[0][1] >= 0:
+            return possible_moves[0][0]
+        return None
 
     def sendAndReceiveMsg(self):
         # send one message to each other

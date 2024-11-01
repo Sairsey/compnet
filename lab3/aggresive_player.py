@@ -28,7 +28,8 @@ class AggresivePlayer:
                 for neighbor in neighbors:
                     if intermediate_points[neighbor].team != self.team:
                         score = intermediate_points[i].health - intermediate_points[neighbor].health
-
+                        if intermediate_points[neighbor].team != 0:
+                            score += 1000000 
                         possible_moves.append(((i, neighbor), score))
 
         possible_moves.sort(key=lambda x: -x[1])
