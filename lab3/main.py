@@ -3,42 +3,21 @@ import time
 import pygame
 import sys
 import random
+import config
 from background import Background
 from source import SourcePoint
 from intermediate import IntermediatePoint
-from random_player import RandomPlayer
-from greedy_player import GreedyPlayer
-from aggresive_player import AggresivePlayer
-from controlled_player import ControlledPlayer
 
 class Game:
-    WIDTH = 1280
-    HEIGHT = 720
-    SAFE_LEFT = 20
-    SAFE_RIGHT = WIDTH - 20
-    SAFE_TOP = 20
-    SAFE_BOTTOM = HEIGHT - 20
-    ALLOWED_DIST = 20
-    MIN_RADIUS = 100
-    MAX_RADIUS = 400
-    ADDITIONAL_POINTS = 50
-
-    PLAYERS = [
-        RandomPlayer(1),
-        RandomPlayer(2),
-        AggresivePlayer(3),
-        GreedyPlayer(4),
-    ]
-
     takenPoints = []
     def generatePosition(self):
         isGood = False
-        point = (self.SAFE_LEFT, self.SAFE_TOP)
+        point = (config.SCREEN_SAFE_LEFT, config.SCREEN_SAFE_TOP)
         while not isGood:
-            point = random.randrange(self.SAFE_LEFT, self.SAFE_RIGHT), random.randrange(self.SAFE_TOP, self.SAFE_BOTTOM)
+            point = random.randrange(config.SCREEN_SAFE_LEFT, config.SCREEN_SAFE_RIGHT), random.randrange(config.SCREEN_SAFE_TOP, config.SCREEN_SAFE_BOTTOM)
             isGood = True
             for p in self.takenPoints:
-                if (p[0] - point[0]) ** 2 + (p[1] - point[1]) ** 2 < self.ALLOWED_DIST ** 2:
+                if (p[0] - point[0]) ** 2 + (p[1] - point[1]) ** 2 < config.MIN_NODES_DIST ** 2:
                     isGood = False
                     break
         self.takenPoints.append(point)
@@ -121,8 +100,8 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((self.WIDTH, self.HEIGHT))
-        self.screen_alpha = pygame.Surface((self.WIDTH, self.HEIGHT), pygame.SRCALPHA)
+        self.screen = pygame.display.set_mode((config.SCREEN_WIDTH, config.SCREEN_HEIGHT))
+        self.screen_alpha = pygame.Surface((config.SCREEN_WIDTH, config.SCREEN_HEIGHT), pygame.SRCALPHA)
         self.font_big = pygame.font.SysFont('couriernew', 40)
         self.font_med = pygame.font.SysFont('couriernew', 24)
         self.font_small = pygame.font.SysFont('couriernew', 12)
@@ -132,65 +111,34 @@ class Game:
 
         self.background = Background()
         # the source point, each team want to download from
-        self.source_point = SourcePoint(self.setPosition((self.WIDTH / 2, self.HEIGHT / 2)))
+        self.source_point = SourcePoint(self.setPosition((config.SCREEN_WIDTH / 2, config.SCREEN_HEIGHT / 2)))
 
-        self.intermediate_points = []
         # add destination point for each team
-        self.intermediate_points.append(
-            IntermediatePoint(
-                self.setPosition((self.SAFE_RIGHT, self.SAFE_BOTTOM)),
-                self.MAX_RADIUS,
-                1,
-                True))
-
-        self.intermediate_points.append(
-            IntermediatePoint(
-                self.setPosition((self.SAFE_LEFT, self.SAFE_BOTTOM)),
-                self.MAX_RADIUS,
-                2,
-                True))
-
-        self.intermediate_points.append(
-            IntermediatePoint(
-                self.setPosition((self.SAFE_LEFT, self.SAFE_TOP)),
-                self.MAX_RADIUS,
-                3,
-                True))
-
-        self.intermediate_points.append(
-            IntermediatePoint(
-                self.setPosition((self.SAFE_RIGHT, self.SAFE_TOP)),
-                self.MAX_RADIUS,
-                4,
-                True))
-
-        step = int((self.MIN_RADIUS + self.MAX_RADIUS) / 2)
-        for y in range(self.SAFE_TOP, self.SAFE_BOTTOM, step):
-            for x in range(self.SAFE_LEFT, self.SAFE_RIGHT, step):
-                if x != self.SAFE_LEFT or y != self.SAFE_TOP:
-                    self.intermediate_points.append(IntermediatePoint(self.setPosition((x, y)), (self.MIN_RADIUS + self.MAX_RADIUS) / 4 * 3))
-        '''
-        # add points, until we connect source and dest
-        while len(self.connectPoints(0)) == 0:
+        self.intermediate_points = []
+        for i in range(len(config.PLAYERS_POSITIONS)):
             self.intermediate_points.append(
-                IntermediatePoint(self.generatePosition(), random.randrange(self.MIN_RADIUS, self.MAX_RADIUS)))
+                IntermediatePoint(
+                    self.setPosition(config.PLAYERS_POSITIONS[i]),
+                    config.MAX_NODE_RADIUS,
+                    i + 1,
+                    True))
 
-        while len(self.connectPoints(1)) == 0:
-            self.intermediate_points.append(
-                IntermediatePoint(self.generatePosition(), random.randrange(self.MIN_RADIUS, self.MAX_RADIUS)))
+        if config.NODE_PLACEMENT_METHOD == "regular":
+            step = int((config.MIN_NODE_RADIUS + config.MAX_NODE_RADIUS) / 2)
+            for y in range(config.SCREEN_SAFE_TOP, config.SCREEN_SAFE_BOTTOM, step):
+                for x in range(config.SCREEN_SAFE_LEFT, config.SCREEN_SAFE_RIGHT, step):
+                    if x != config.SCREEN_SAFE_LEFT or y != config.SCREEN_SAFE_TOP:
+                        self.intermediate_points.append(IntermediatePoint(self.setPosition((x, y)), (config.MIN_NODE_RADIUS + config.MAX_NODE_RADIUS) / 4 * 3))
+        else:
+            # add random points, until we connect source and dest
+            for i in range(len(config.PLAYERS_POSITIONS)):
+                while len(self.connectPoints(i)) == 0:
+                    self.intermediate_points.append(
+                        IntermediatePoint(self.generatePosition(), random.randrange(config.MIN_NODE_RADIUS, config.MAX_NODE_RADIUS)))
+            # generate additional points
+            for i in range(config.NODE_RANDOM_PLACEMENT_ADDITIONAL_POINTS):
+                self.intermediate_points.append(IntermediatePoint(self.generatePosition(), random.randrange(config.MIN_NODE_RADIUS, config.MAX_NODE_RADIUS)))
 
-        while len(self.connectPoints(2)) == 0:
-            self.intermediate_points.append(
-                IntermediatePoint(self.generatePosition(), random.randrange(self.MIN_RADIUS, self.MAX_RADIUS)))
-
-        while len(self.connectPoints(3)) == 0:
-            self.intermediate_points.append(
-                IntermediatePoint(self.generatePosition(), random.randrange(self.MIN_RADIUS, self.MAX_RADIUS)))
-
-        # generate additional points
-        for i in range(self.ADDITIONAL_POINTS):
-            self.intermediate_points.append(IntermediatePoint(self.generatePosition(), random.randrange(self.MIN_RADIUS, self.MAX_RADIUS)))
-        '''
         self.whoWon = None
 
     def update(self):
@@ -200,8 +148,8 @@ class Game:
 
         # check if someone Won
         if self.whoWon == None:
-            for i in range(len(self.PLAYERS)):
-                if self.PLAYERS[i].isWon():
+            for i in range(len(config.PLAYERS)):
+                if config.PLAYERS[i].isWon():
                     self.whoWon = i
 
         if self.whoWon != None:
@@ -214,33 +162,33 @@ class Game:
             self.intermediate_points[i].update()
 
         # update input
-        for i in range(len(self.PLAYERS)):
-            if self.PLAYERS[i].update(self.intermediate_points):
-                self.intermediate_points[self.PLAYERS[i].fromIdx].markActive()
-            if self.PLAYERS[i].fast:
-                decision = self.PLAYERS[i].decide(self.intermediate_points)
+        for i in range(len(config.PLAYERS)):
+            if config.PLAYERS[i].update(self.intermediate_points):
+                self.intermediate_points[config.PLAYERS[i].fromIdx].markActive()
+            if config.PLAYERS[i].fast:
+                decision = config.PLAYERS[i].decide(self.intermediate_points)
                 if decision != None:
-                    self.PLAYERS[i].decision = decision
+                    config.PLAYERS[i].decision = decision
                     self.attack(decision[0], decision[1])
                     self.intermediate_points[decision[0]].attack(self.intermediate_points[decision[1]].pos, i + 1)
 
 
         # update Players decisions
         if time.time() - self.playerUpdateTime > 1:
-            for i in range(len(self.PLAYERS)):
-                decision = self.PLAYERS[i].decide(self.intermediate_points)
+            for i in range(len(config.PLAYERS)):
+                decision = config.PLAYERS[i].decide(self.intermediate_points)
                 if decision != None:
-                    self.PLAYERS[i].decision = decision
+                    config.PLAYERS[i].decision = decision
                     self.attack(decision[0], decision[1])
                     self.intermediate_points[decision[0]].attack(self.intermediate_points[decision[1]].pos, i + 1)
             self.playerUpdateTime = time.time()
         else: # keep attack on screen
-            for i in range(len(self.PLAYERS)):
-                if self.PLAYERS[i].decision != None:
-                    self.intermediate_points[self.PLAYERS[i].decision[0]].attack(self.intermediate_points[self.PLAYERS[i].decision[1]].pos, i + 1)
+            for i in range(len(config.PLAYERS)):
+                if config.PLAYERS[i].decision != None:
+                    self.intermediate_points[config.PLAYERS[i].decision[0]].attack(self.intermediate_points[config.PLAYERS[i].decision[1]].pos, i + 1)
 
         # check for each player -> if it is connected to source
-        for i in range(len(self.PLAYERS)):
+        for i in range(len(config.PLAYERS)):
             # draw path
             path = self.connectTeamPoints(i)
             if len(path) > 0:
@@ -248,7 +196,7 @@ class Game:
                     self.intermediate_points[path[j]].connect(self.intermediate_points[path[j + 1]].pos)
                 self.intermediate_points[path[-1]].connect(self.source_point.pos)
                 # send 1 message
-                self.PLAYERS[i].sendAndReceiveMsg()
+                config.PLAYERS[i].sendAndReceiveMsg()
 
     def draw(self):
         self.background.draw(self.screen)
@@ -263,21 +211,21 @@ class Game:
             self.intermediate_points[i].draw(self.screen_alpha, self.font_small)
 
         # for each player also draw their progress
-        for i in range(len(self.PLAYERS)):
-            text = self.font_small.render(str(self.PLAYERS[i].progress()) + "%", True, (255, 255, 255))
+        for i in range(len(config.PLAYERS)):
+            text = self.font_small.render(str(config.PLAYERS[i].progress()) + "%", True, (255, 255, 255))
             self.screen_alpha.blit(text, (self.intermediate_points[i].pos[0] - 10, self.intermediate_points[i].pos[1] - 20))
 
         self.screen.blit(self.screen_alpha, (0, 0))
 
         if self.pause:
-            self.screen.fill((0, 0, 0, 0), (640 - 70, 360 - 25, 170, 50))
+            self.screen.fill((0, 0, 0, 0), (config.SCREEN_WIDTH / 2 - 70, config.SCREEN_HEIGHT / 2 - 25, 170, 50))
             text = self.font_big.render("Paused", True, (255, 255, 255))
-            self.screen.blit(text, (640 - 60, 360 - 25))
+            self.screen.blit(text, (config.SCREEN_WIDTH / 2 - 60, config.SCREEN_HEIGHT / 2 - 25))
 
         if self.whoWon != None:
-            self.screen.fill((0, 0, 0, 0), (640 - 150, 360 - 25, 310, 50))
+            self.screen.fill((0, 0, 0, 0), (config.SCREEN_WIDTH / 2 - 150, config.SCREEN_HEIGHT / 2 - 25, 310, 50))
             text = self.font_big.render("Player " + str(self.whoWon) + " won!", True, (255, 255, 255))
-            self.screen.blit(text, (640 - 150, 360 - 25) )
+            self.screen.blit(text, (config.SCREEN_WIDTH / 2 - 150, config.SCREEN_HEIGHT / 2 - 25) )
 
 
     def run(self):
@@ -304,5 +252,3 @@ class Game:
 if __name__ == '__main__':
     game = Game()
     game.run()
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

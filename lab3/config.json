@@ -1,0 +1,23 @@
+{
+	"screen_width": 1280,
+	"screen_height": 720,
+	"screen_offset_left": 20,
+	"screen_offset_right": 20,
+	"screen_offset_top": 20,
+	"screen_offset_bottom": 20,
+
+	"node_min_dist_between": 20,
+	"node_min_radius": 100,
+	"node_max_radius": 400,
+	"node_placement_method": "regular",
+	"node_placement_random_additional_points": 50,
+
+	"players_behaviour": ["controlled", "random", "aggressive", "greedy"],
+	"players_positions": [[20, 20], [1260, 20], [20, 700], [1260, 700]],
+	"players_colors": [[127, 127, 127, 50], [0, 0, 255, 255], [255, 255, 0, 255], [255, 0, 255, 255], [0, 255, 255, 255]],
+
+	"background_img": "bin/background.bmp",
+	"node_img": "bin/computer.png",
+	"goal_img": "bin/goal.png",
+	"player_img": "bin/player.png"
+}

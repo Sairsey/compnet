@@ -35,13 +35,13 @@ class IntermediatePoint:
 
     def drawConnections(self, screen, font):
         if self.connection_pos != None:
-            pygame.draw.line(screen, config.TEAMS_COLORS[self.team], self.pos, self.connection_pos, 10)
+            pygame.draw.line(screen, config.PLAYERS_COLORS[self.team], self.pos, self.connection_pos, 10)
 
         if self.attack_pos != None:
-            self.draw_arrow(screen, config.TEAMS_COLORS[self.attack_team], self.pos, self.attack_pos)
+            self.draw_arrow(screen, config.PLAYERS_COLORS[self.attack_team], self.pos, self.attack_pos)
 
     def draw(self, screen, font):
-        color = config.TEAMS_COLORS[self.team]
+        color = config.PLAYERS_COLORS[self.team]
 
         alpha_color = [color[0], color[1], color[2], 50]
         pygame.draw.circle(screen, alpha_color, self.pos, self.radius, 1)
@@ -53,7 +53,7 @@ class IntermediatePoint:
         if self.is_master:
             screen.blit(config.colored_players[self.team], (self.pos[0] - 16, self.pos[1] - 16))
         else:
-            screen.blit(config.colored_computers[self.team], (self.pos[0] - 16, self.pos[1] - 16))
+            screen.blit(config.colored_nodes[self.team], (self.pos[0] - 16, self.pos[1] - 16))
 
         text = font.render(str(self.health), True, (255, 255, 255))
         screen.blit(text, (self.pos[0] - 10, self.pos[1] + 10))
